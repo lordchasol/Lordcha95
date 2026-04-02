@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LORDCHA.SOL</title>
+  <meta name="description" content="LORDCHA.SOL — Solana Builder & Crypto Dev" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='14' height='14' fill='%23f00'/><rect x='18' width='14' height='14' fill='%2300aa00'/><rect y='18' width='14' height='14' fill='%230000ff'/><rect x='18' y='18' width='14' height='14' fill='%23ffff00'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    .desktop {
+      background: #008080;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.04) 1px, rgba(0,0,0,0.04) 2px),
+        repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(0,0,0,0.04) 1px, rgba(0,0,0,0.04) 2px);
+      width: 100%; height: 100vh;
+      font-family: 'Tahoma', Arial, sans-serif;
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── BOOT ── */
+    .boot-screen {
+      position: absolute; inset: 0; background: #000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 500; transition: opacity .6s ease;
+    }
+    .boot-screen.fade-out { opacity: 0; pointer-events: none; }
+    .boot-screen.hidden { display: none; }
+    .boot-logo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 64px; height: 64px; margin-bottom: 28px; }
+    .boot-logo div { border-radius: 1px; }
+    .bl-r { background: #f00; } .bl-g { background: #0a0; } .bl-b { background: #00f; } .bl-y { background: #ff0; }
+    .boot-title { font-family: 'VT323', monospace; font-size: 42px; color: #fff; letter-spacing: .08em; margin-bottom: 6px; text-align: center; }
+    .boot-sub { font-family: 'VT323', monospace; font-size: 18px; color: #555; margin-bottom: 48px; letter-spacing: .12em; text-align: center; }
+    .boot-bar-wrap { width: min(280px, 70vw); height: 20px; border: 1px solid #555; background: #000; padding: 3px; margin-bottom: 16px; }
+    .boot-bar-inner { height: 100%; background: #00c; width: 0%; transition: width .15s linear; }
+    .boot-msg { font-family: 'VT323', monospace; font-size: 16px; color: #0c0; letter-spacing: .06em; min-height: 22px; text-align: center; }
+    .boot-pct { font-family: 'VT323', monospace; font-size: 14px; color: #444; margin-top: 6px; }
+
+    /* ── DESKTOP AREA ── */
+    .desktop-area { flex: 1; position: relative; padding: 12px; overflow: hidden; }
+    .desk-icons { display: flex; flex-direction: column; gap: 16px; padding: 8px; }
+    .desk-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 70px; user-select: none; }
+    .desk-icon:hover .di-img { outline: 1px dotted rgba(255,255,255,.8); background: rgba(0,0,128,.3); }
+    .desk-icon:hover .di-label { background: #000080; }
+    .di-img { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+    .di-label { font-size: 11px; color: #fff; text-align: center; padding: 1px 4px; line-height: 1.3; text-shadow: 1px 1px 2px #000; }
+
+    /* ── WINDOWS ── */
+    .win {
+      position: absolute; background: #c0c0c0;
+      border-top: 3px solid #fff; border-left: 3px solid #fff;
+      border-right: 3px solid #808080; border-bottom: 3px solid #808080;
+      box-shadow: 3px 3px 0 #000;
+      display: none; flex-direction: column; overflow: hidden;
+      min-width: 280px; min-height: 180px;
+    }
+    .win.visible { display: flex; }
+    .win.maximized { top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; }
+    .win.minimized { display: none !important; }
+
+    .win-titlebar { background: linear-gradient(to right, #000080, #1084d0); padding: 4px 6px; display: flex; align-items: center; justify-content: space-between; cursor: move; user-select: none; flex-shrink: 0; }
+    .win-titlebar.inactive { background: linear-gradient(to right, #808080, #aaa); }
+    .win-titlebar-left { display: flex; align-items: center; gap: 6px; }
+    .win-icon { width: 16px; height: 16px; background: #c0c0c0; border: 1px solid #808080; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+    .win-title { color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .win-btns { display: flex; gap: 2px; flex-shrink: 0; }
+    .wbtn { width: 18px; height: 16px; background: #c0c0c0; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #000; flex-shrink: 0; }
+    .wbtn:active { border-top: 1px solid #404040; border-left: 1px solid #404040; border-right: 1px solid #fff; border-bottom: 1px solid #fff; }
+
+    .win-menubar { background: #c0c0c0; padding: 2px 6px; border-bottom: 1px solid #808080; display: flex; flex-shrink: 0; }
+    .win-menu-item { font-size: 12px; padding: 2px 10px; cursor: default; color: #000; }
+    .win-menu-item:hover { background: #000080; color: #fff; }
+    .win-body { flex: 1; overflow: auto; }
+
+    /* ── TICKER ── */
+    .ticker-win { background: #000; border-top: 2px solid #404040; border-left: 2px solid #404040; border-right: 2px solid #ccc; border-bottom: 2px solid #ccc; padding: 4px 8px; margin: 8px 8px 0; overflow: hidden; white-space: nowrap; flex-shrink: 0; }
+    .ticker-scroll { display: inline-block; animation: scrollticker 28s linear infinite; font-family: 'VT323', monospace; font-size: 15px; letter-spacing: .05em; }
+    .t-up { color: #0f0; } .t-dn { color: #f44; } .t-sep { color: #333; margin: 0 10px; }
+    @keyframes scrollticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ── LINK CONTENT ── */
+    .link-content { padding: 10px 8px; }
+    .addressbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .addr-label { font-size: 12px; color: #000; white-space: nowrap; }
+    .addr-input { flex: 1; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #fff; border-bottom: 2px solid #fff; padding: 2px 6px; font-size: 12px; color: #000080; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .icon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: #fff; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #e0e0e0; border-bottom: 2px solid #e0e0e0; padding: 12px 8px; }
+    .icon-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; cursor: pointer; text-decoration: none; color: #000; }
+    .icon-item:hover .icon-img { outline: 1px dotted #000; background: rgba(0,0,128,.12); }
+    .icon-item:hover .icon-label { background: #000080; color: #fff; }
+    .icon-img { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+    .icon-img svg { width: 40px; height: 40px; }
+    .icon-label { font-size: 11px; text-align: center; color: #000; line-height: 1.3; padding: 2px 3px; max-width: 80px; }
+    .win-statusbar { background: #c0c0c0; border-top: 1px solid #808080; padding: 3px 8px; display: flex; gap: 4px; flex-shrink: 0; }
+    .status-panel { flex: 1; border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #fff; border-bottom: 1px solid #fff; padding: 2px 8px; font-size: 11px; color: #000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── MINESWEEPER ── */
+    .mine-body { padding: 8px; }
+    .mine-difficulty { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .diff-btn { font-size: 11px; padding: 3px 10px; background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; cursor: pointer; font-family: 'Tahoma', Arial, sans-serif; }
+    .diff-btn.active { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #fff; border-bottom: 2px solid #fff; }
+    .mine-header { background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; padding: 6px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .mine-counter { background: #000; color: #f00; font-family: 'VT323', monospace; font-size: 32px; line-height: 1; padding: 2px 8px; letter-spacing: .05em; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #fff; border-bottom: 2px solid #fff; min-width: 60px; text-align: center; }
+    .mine-face-btn { width: 36px; height: 36px; background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; flex-shrink: 0; }
+    .mine-face-btn:active { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #fff; border-bottom: 2px solid #fff; }
+    .mine-grid-wrap { border-top: 3px solid #808080; border-left: 3px solid #808080; border-right: 3px solid #fff; border-bottom: 3px solid #fff; line-height: 0; overflow: auto; }
+    .mine-grid { display: grid; }
+    .cell { background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; font-family: 'VT323', monospace; font-weight: bold; line-height: 1; flex-shrink: 0; }
+    .cell.revealed { border: 1px solid #808080; cursor: default; }
+    .cell.mine-hit { background: #f00; }
+    .cell[data-n="1"] { color: #0000f0; } .cell[data-n="2"] { color: #007b00; } .cell[data-n="3"] { color: #f00; }
+    .cell[data-n="4"] { color: #00007b; } .cell[data-n="5"] { color: #7b0000; } .cell[data-n="6"] { color: #007b7b; }
+    .cell[data-n="7"] { color: #000; } .cell[data-n="8"] { color: #808080; }
+
+    /* ── RESIZE HANDLE ── */
+    .win-resize { position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; cursor: se-resize; background: linear-gradient(135deg, transparent 40%, #808080 40%, #808080 60%, #fff 60%); }
+
+    /* ── START MENU ── */
+    .start-menu { position: absolute; bottom: 36px; left: 0; width: 220px; background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; box-shadow: 2px 2px 0 #000; display: none; z-index: 400; }
+    .start-menu.open { display: flex; }
+    .start-menu-side { background: linear-gradient(to top, #000080, #1084d0); width: 26px; writing-mode: vertical-rl; transform: rotate(180deg); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #fff; letter-spacing: .15em; padding: 8px 0; flex-shrink: 0; font-family: 'Tahoma', Arial, sans-serif; }
+    .start-menu-items { flex: 1; display: flex; flex-direction: column; }
+    .sm-separator { height: 1px; background: #808080; margin: 2px 4px; }
+    .sm-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; cursor: pointer; font-size: 12px; color: #000; }
+    .sm-item:hover { background: #000080; color: #fff; }
+    .sm-item .sm-ico { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+    .sm-item-text { display: flex; flex-direction: column; }
+    .sm-item-title { font-weight: bold; font-size: 12px; }
+    .sm-item-sub { font-size: 10px; color: #555; }
+    .sm-item:hover .sm-item-sub { color: #bbb; }
+
+    /* ── TASKBAR ── */
+    .taskbar { position: relative; background: #c0c0c0; border-top: 2px solid #fff; padding: 3px 6px; display: flex; align-items: center; gap: 4px; z-index: 300; flex-shrink: 0; }
+    .start-btn { background: #c0c0c0; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #404040; border-bottom: 2px solid #404040; padding: 3px 10px 3px 6px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .start-btn.pressed { border-top: 2px solid #404040; border-left: 2px solid #404040; border-right: 2px solid #fff; border-bottom: 2px solid #fff; }
+    .sl { width: 18px; height: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; flex-shrink: 0; }
+    .sl-r { background: #f00; } .sl-g { background: #0a0; } .sl-b { background: #00f; } .sl-y { background: #ff0; }
+    .tb-wins { display: flex; gap: 3px; flex: 1; overflow: hidden; }
+    .tb-win { background: #c0c0c0; border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #fff; border-bottom: 2px solid #fff; padding: 2px 8px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; display: none; }
+    .tb-win.show { display: block; }
+    .tb-win.focused { border-top: 2px solid #404040; border-left: 2px solid #404040; background: #bbb; }
+    .taskbar-clock { border-top: 1px solid #808080; border-left: 1px solid #808080; border-right: 1px solid #fff; border-bottom: 1px solid #fff; padding: 2px 10px; font-size: 12px; color: #000; white-space: nowrap; flex-shrink: 0; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      .icon-grid { grid-template-columns: repeat(2, 1fr); }
+      .win { min-width: 240px; }
+      .status-panel:last-child { display: none; }
+      .tb-win { max-width: 90px; font-size: 10px; }
+      .start-menu { width: 190px; }
+    }
+  </style>
+</head>
+<body>
+<div class="desktop">
+
+  <!-- BOOT -->
+  <div class="boot-screen" id="bootScreen">
+    <div class="boot-logo">
+      <div class="bl-r"></div><div class="bl-g"></div>
+      <div class="bl-b"></div><div class="bl-y"></div>
+    </div>
+    <div class="boot-title">LORDCHA.SOL</div>
+    <div class="boot-sub">SOLANA BUILDER · CRYPTO DEV</div>
+    <div class="boot-bar-wrap"><div class="boot-bar-inner" id="bootBar"></div></div>
+    <div class="boot-msg" id="bootMsg">Initializing...</div>
+    <div class="boot-pct" id="bootPct">0%</div>
+  </div>
+
+  <!-- DESKTOP -->
+  <div class="desktop-area" id="desktopArea">
+    <div class="desk-icons">
+      <div class="desk-icon" ondblclick="openWin('links')">
+        <div class="di-img">◆</div>
+        <div class="di-label">LORDCHA.SOL</div>
+      </div>
+      <div class="desk-icon" ondblclick="openWin('mine')">
+        <div class="di-img">💣</div>
+        <div class="di-label">Minesweeper</div>
+      </div>
+    </div>
+
+    <!-- LINKS WINDOW -->
+    <div class="win" id="winLinks" style="top:20px;left:80px;width:min(520px,calc(100% - 90px));">
+      <div class="win-titlebar" onmousedown="startDrag(event,'winLinks')">
+        <div class="win-titlebar-left"><div class="win-icon">◆</div><span class="win-title">LORDCHA.SOL — Link Hub</span></div>
+        <div class="win-btns">
+          <div class="wbtn" onclick="minimizeWin('links')">_</div>
+          <div class="wbtn" onclick="maximizeWin('winLinks')">□</div>
+          <div class="wbtn" onclick="closeWin('links')" style="font-size:11px;">✕</div>
+        </div>
+      </div>
+      <div class="win-menubar">
+        <span class="win-menu-item">File</span><span class="win-menu-item">Edit</span>
+        <span class="win-menu-item">View</span><span class="win-menu-item">Favorites</span><span class="win-menu-item">Help</span>
+      </div>
+      <div class="ticker-win">
+        <span class="ticker-scroll">
+          SOL <span class="t-up">▲178.32</span><span class="t-sep">|</span>
+          BTC <span class="t-up">▲84,210</span><span class="t-sep">|</span>
+          ETH <span class="t-dn">▼1,893</span><span class="t-sep">|</span>
+          BONK <span class="t-up">▲0.0000218</span><span class="t-sep">|</span>
+          FEAR/GREED <span class="t-up">61 GREED</span><span class="t-sep">|</span>&nbsp;&nbsp;
+          SOL <span class="t-up">▲178.32</span><span class="t-sep">|</span>
+          BTC <span class="t-up">▲84,210</span><span class="t-sep">|</span>
+          ETH <span class="t-dn">▼1,893</span><span class="t-sep">|</span>
+          BONK <span class="t-up">▲0.0000218</span><span class="t-sep">|</span>
+          FEAR/GREED <span class="t-up">61 GREED</span><span class="t-sep">|</span>
+        </span>
+      </div>
+      <div class="win-body">
+        <div class="link-content">
+          <div class="addressbar">
+            <span class="addr-label">Address</span>
+            <div class="addr-input">https://lordcha.sol.site</div>
+          </div>
+          <div class="icon-grid">
+            <a class="icon-item" href="https://x.com/Renato42084" target="_blank" rel="noopener">
+              <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#000"/><path d="M22.3 18.5L29.5 10h-1.7l-6.2 7.2L16.2 10H10l7.5 10.9L10 30h1.7l6.6-7.6 5.2 7.6H30L22.3 18.5zm-2.3 2.7l-.8-1.1-6-8.5h2.6l4.9 7 .8 1.1 6.3 8.9h-2.6l-5.2-7.4z" fill="#fff"/></svg></div>
+              <span class="icon-label">Twitter / X</span>
+            </a>
+            <a class="icon-item" href="https://t.me/Lordchasol" target="_blank" rel="noopener">
+              <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#2ca5e0"/><path d="M20 8C13.37 8 8 13.37 8 20s5.37 12 12 12 12-5.37 12-12S26.63 8 20 8zm5.89 8.42l-2.02 9.51c-.15.68-.55.85-1.11.53l-3.08-2.27-1.49 1.43c-.16.16-.3.3-.62.3l.22-3.14 5.74-5.19c.25-.22-.05-.34-.39-.12l-7.09 4.47-3.05-.95c-.66-.21-.68-.66.14-.97l11.92-4.6c.55-.2 1.03.13.83.97z" fill="#fff"/></svg></div>
+              <span class="icon-label">Telegram</span>
+            </a>
+            <a class="icon-item" href="https://discord.com/invite/sns-778660171265474572" target="_blank" rel="noopener">
+              <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#5865f2"/><path d="M27.5 13.5c-1.4-.6-2.9-1.1-4.5-1.4l-.2.4c1.4.3 2.8.9 4 1.6-1.7-.9-3.5-1.4-5.8-1.4s-4.1.5-5.8 1.4c1.2-.7 2.7-1.3 4-1.6l-.2-.4c-1.6.3-3.1.8-4.5 1.4C12 17.7 11 22.3 11.4 26.8c1.8 1.3 3.5 2.1 5.2 2.6l.7-1c-.9-.3-1.8-.7-2.7-1.3l.7-.5c3.4 1.6 7.1 1.6 10.4 0l.7.5c-.9.6-1.8 1-2.7 1.3l.7 1c1.7-.5 3.4-1.3 5.2-2.6.5-5-1-9.5-3.1-13.3zM17 24.5c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z" fill="#fff"/></svg></div>
+              <span class="icon-label">Discord</span>
+            </a>
+            <a class="icon-item" href="https://github.com/SolanaNameService" target="_blank" rel="noopener">
+              <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#24292e"/><path d="M20 9.6C14.26 9.6 9.6 14.26 9.6 20c0 4.6 2.98 8.5 7.12 9.88.52.1.71-.23.71-.5v-1.74c-2.9.63-3.5-1.4-3.5-1.4-.47-1.2-1.15-1.52-1.15-1.52-.94-.64.07-.63.07-.63 1.04.07 1.59 1.07 1.59 1.07.93 1.59 2.43 1.13 3.02.86.09-.67.36-1.13.66-1.39-2.31-.26-4.74-1.16-4.74-5.15 0-1.14.4-2.07 1.07-2.8-.11-.26-.46-1.32.1-2.76 0 0 .87-.28 2.86 1.07a9.93 9.93 0 012.6-.35c.88 0 1.77.12 2.6.35 1.98-1.35 2.85-1.07 2.85-1.07.56 1.44.21 2.5.1 2.76.66.73 1.07 1.66 1.07 2.8 0 4-2.44 4.88-4.76 5.14.37.32.71.96.71 1.93v2.86c0 .28.19.6.72.5C27.42 28.49 30.4 24.6 30.4 20c0-5.74-4.66-10.4-10.4-10.4z" fill="#fff"/></svg></div>
+              <span class="icon-label">GitHub</span>
+            </a>
+            <a class="icon-item" href="https://www.sns.id/account/4UPpQcj9Ut3HNh1yR7VEAwY5u8nHirKGUFZciwb4eBAh" target="_blank" rel="noopener">
+              <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#000"/><path d="M12 20l4-8 2 4 2-6 2 6 2-4 4 8H12z" fill="#9945ff"/><path d="M12 22h16" stroke="#14f195" stroke-width="1.5"/><circle cx="20" cy="14" r="2" fill="#14f195"/></svg></div>
+              <span class="icon-label">.sol domains</span>
+            </a>
+            <a class="icon-item" href="https://justmy.sol.site" target="_blank" rel="noopener">
+              <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#c0c0c0"/><rect x="6" y="6" width="28" height="20" fill="#fff" stroke="#808080" stroke-width="1"/><rect x="8" y="8" width="24" height="3" fill="#000080"/><rect x="8" y="13" width="18" height="1.5" fill="#404040"/><rect x="8" y="16" width="22" height="1.5" fill="#404040"/><rect x="8" y="19" width="14" height="1.5" fill="#404040"/><rect x="10" y="28" width="20" height="6" fill="#c0c0c0" stroke="#808080" stroke-width="1"/><text x="20" y="33" text-anchor="middle" font-family="Tahoma,Arial" font-size="5" fill="#000">WEBSITE</text></svg></div>
+              <span class="icon-label">Website</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="win-statusbar">
+        <div class="status-panel">6 objects</div>
+        <div class="status-panel" id="clockStatus">--</div>
+        <div class="status-panel">SOLANA MAINNET</div>
+      </div>
+      <div class="win-resize" onmousedown="startResize(event,'winLinks')"></div>
+    </div>
+
+    <!-- MINESWEEPER WINDOW -->
+    <div class="win" id="winMine" style="top:30px;left:100px;width:min(600px,calc(100% - 90px));">
+      <div class="win-titlebar" onmousedown="startDrag(event,'winMine')">
+        <div class="win-titlebar-left"><div class="win-icon">💣</div><span class="win-title">Minesweeper</span></div>
+        <div class="win-btns">
+          <div class="wbtn" onclick="minimizeWin('mine')">_</div>
+          <div class="wbtn" onclick="maximizeWin('winMine')">□</div>
+          <div class="wbtn" onclick="closeWin('mine')" style="font-size:11px;">✕</div>
+        </div>
+      </div>
+      <div class="win-menubar"><span class="win-menu-item">Game</span><span class="win-menu-item">Help</span></div>
+      <div class="win-body">
+        <div class="mine-body">
+          <div class="mine-difficulty">
+            <button class="diff-btn active" id="btnBeg" onclick="setDiff('beg')">Beginner (9×9)</button>
+            <button class="diff-btn" id="btnInt" onclick="setDiff('int')">Intermediate (16×16)</button>
+            <button class="diff-btn" id="btnExp" onclick="setDiff('exp')">Expert (30×24)</button>
+          </div>
+          <div class="mine-header">
+            <div class="mine-counter" id="mineCount">010</div>
+            <div class="mine-face-btn" id="faceBtn" onclick="initGame()">🙂</div>
+            <div class="mine-counter" id="timerCount">000</div>
+          </div>
+          <div class="mine-grid-wrap"><div class="mine-grid" id="mineGrid"></div></div>
+        </div>
+      </div>
+      <div class="win-resize" onmousedown="startResize(event,'winMine')"></div>
+    </div>
+  </div>
+
+  <!-- START MENU -->
+  <div class="start-menu" id="startMenu">
+    <div class="start-menu-side">LORDCHA.SOL</div>
+    <div class="start-menu-items">
+      <div class="sm-item" onclick="openWin('links');toggleStart();">
+        <span class="sm-ico">◆</span>
+        <div class="sm-item-text"><div class="sm-item-title">Link Hub</div><div class="sm-item-sub">LORDCHA.SOL</div></div>
+      </div>
+      <div class="sm-item" onclick="openWin('mine');toggleStart();">
+        <span class="sm-ico">💣</span>
+        <div class="sm-item-text"><div class="sm-item-title">Minesweeper</div><div class="sm-item-sub">Good luck</div></div>
+      </div>
+      <div class="sm-separator"></div>
+      <div class="sm-item" onclick="toggleStart()">
+        <span class="sm-ico">🔌</span>
+        <div class="sm-item-text"><div class="sm-item-title">Shut Down...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKBAR -->
+  <div class="taskbar">
+    <div class="start-btn" id="startBtn" onclick="toggleStart()">
+      <div class="sl"><div class="sl-r"></div><div class="sl-g"></div><div class="sl-b"></div><div class="sl-y"></div></div>
+      Start
+    </div>
+    <div class="tb-wins">
+      <div class="tb-win" id="tbLinks" onclick="tbClick('links')">◆ LORDCHA.SOL</div>
+      <div class="tb-win" id="tbMine" onclick="tbClick('mine')">💣 Minesweeper</div>
+    </div>
+    <div class="taskbar-clock" id="taskbarClock">00:00</div>
+  </div>
+</div>
+
+<script>
+// ── CLOCK ──
+function pad(n){return String(n).padStart(2,'0');}
+function tick(){
+  const now=new Date();
+  const t=pad(now.getHours())+':'+pad(now.getMinutes());
+  document.getElementById('taskbarClock').textContent=t;
+  const cs=document.getElementById('clockStatus');
+  if(cs) cs.textContent=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+t;
+}
+tick(); setInterval(tick,10000);
+
+// ── BOOT ──
+const bootMsgs=['Initializing system...','Loading LORDCHA.SYS...','Mounting Solana volume...','Loading MINESWEEPER.EXE...','Connecting to mainnet...','Starting Explorer.exe...','Welcome.'];
+let bprog=0,bmIdx=0;
+function bootStep(){
+  if(bprog>=100){
+    document.getElementById('bootPct').textContent='100%';
+    document.getElementById('bootMsg').textContent='Welcome.';
+    setTimeout(()=>{
+      const bs=document.getElementById('bootScreen');
+      bs.classList.add('fade-out');
+      setTimeout(()=>bs.classList.add('hidden'),600);
+    },900);
+    return;
+  }
+  const chunk=6+Math.random()*10;
+  bprog=Math.min(bprog+chunk,100);
+  document.getElementById('bootBar').style.width=bprog+'%';
+  document.getElementById('bootPct').textContent=Math.floor(bprog)+'%';
+  const th=Math.floor(bprog/(100/bootMsgs.length));
+  if(th<bootMsgs.length&&document.getElementById('bootMsg').textContent!==bootMsgs[th])
+    document.getElementById('bootMsg').textContent=bootMsgs[th];
+  const delay=bprog<30?500+Math.random()*400:bprog<70?350+Math.random()*350:250+Math.random()*200;
+  setTimeout(bootStep,delay);
+}
+setTimeout(bootStep,900);
+
+// ── WINDOW MANAGEMENT ──
+const winMap={links:{el:'winLinks',tb:'tbLinks'},mine:{el:'winMine',tb:'tbMine'}};
+let zTop=10,focused=null;
+const maxState={};
+
+function focusWin(key){
+  focused=key;
+  Object.keys(winMap).forEach(k=>{
+    const el=document.getElementById(winMap[k].el);
+    const tb=document.getElementById(winMap[k].tb);
+    const tb2=el.querySelector('.win-titlebar');
+    if(k===key){
+      el.style.zIndex=++zTop;
+      tb2.style.background='linear-gradient(to right,#000080,#1084d0)';
+      tb.classList.add('focused');
+    } else {
+      tb2.style.background='linear-gradient(to right,#808080,#aaa)';
+      tb.classList.remove('focused');
+    }
+  });
+}
+
+function openWin(key){
+  const w=winMap[key];
+  const el=document.getElementById(w.el);
+  el.classList.remove('minimized');
+  el.classList.add('visible');
+  document.getElementById(w.tb).classList.add('show');
+  focusWin(key);
+  if(key==='mine') initGame();
+}
+
+function closeWin(key){
+  const w=winMap[key];
+  document.getElementById(w.el).classList.remove('visible','minimized','maximized');
+  document.getElementById(w.tb).classList.remove('show','focused');
+  if(focused===key) focused=null;
+}
+
+function minimizeWin(key){
+  document.getElementById(winMap[key].el).classList.add('minimized');
+  document.getElementById(winMap[key].tb).classList.remove('focused');
+  if(focused===key) focused=null;
+}
+
+function tbClick(key){
+  const el=document.getElementById(winMap[key].el);
+  if(!el.classList.contains('visible')){openWin(key);return;}
+  if(el.classList.contains('minimized')){el.classList.remove('minimized');focusWin(key);}
+  else if(focused===key){minimizeWin(key);}
+  else{focusWin(key);}
+}
+
+function maximizeWin(elId){
+  const el=document.getElementById(elId);
+  const key=Object.keys(winMap).find(k=>winMap[k].el===elId);
+  if(el.classList.contains('maximized')){
+    el.classList.remove('maximized');
+    if(maxState[elId]){
+      el.style.top=maxState[elId].top;el.style.left=maxState[elId].left;
+      el.style.width=maxState[elId].width;el.style.height=maxState[elId].height;
+    }
+  } else {
+    maxState[elId]={top:el.style.top,left:el.style.left,width:el.style.width,height:el.style.height};
+    el.classList.add('maximized');
+  }
+  if(key){focusWin(key);if(key==='mine') setTimeout(renderGrid,50);}
+}
+
+document.getElementById('desktopArea').addEventListener('mousedown',e=>{
+  if(!e.target.closest('.win')&&!e.target.closest('.desk-icon')){
+    focused=null;
+    Object.keys(winMap).forEach(k=>{
+      document.getElementById(winMap[k].el).querySelector('.win-titlebar').style.background='linear-gradient(to right,#808080,#aaa)';
+      document.getElementById(winMap[k].tb).classList.remove('focused');
+    });
+  }
+});
+['winLinks','winMine'].forEach(id=>{
+  document.getElementById(id).addEventListener('mousedown',()=>{
+    const key=Object.keys(winMap).find(k=>winMap[k].el===id);
+    if(key) focusWin(key);
+  });
+});
+
+// ── DRAG ──
+let dragging=null,dragOffX=0,dragOffY=0;
+function startDrag(e,winId){
+  const el=document.getElementById(winId);
+  if(el.classList.contains('maximized')) return;
+  const key=Object.keys(winMap).find(k=>winMap[k].el===winId);
+  if(key) focusWin(key);
+  dragging=el;
+  const rect=el.getBoundingClientRect();
+  const da=document.getElementById('desktopArea').getBoundingClientRect();
+  dragOffX=e.clientX-(rect.left-da.left);
+  dragOffY=e.clientY-(rect.top-da.top);
+  e.preventDefault();
+}
+document.addEventListener('mousemove',e=>{
+  if(dragging){
+    const da=document.getElementById('desktopArea').getBoundingClientRect();
+    dragging.style.left=Math.max(0,e.clientX-da.left-dragOffX)+'px';
+    dragging.style.top=Math.max(0,e.clientY-da.top-dragOffY)+'px';
+  }
+  if(resizing){
+    const newW=Math.max(280,resizeStartW+(e.clientX-resizeStartX));
+    const newH=Math.max(180,resizeStartH+(e.clientY-resizeStartY));
+    resizing.style.width=newW+'px';
+    resizing.style.height=newH+'px';
+    if(resizing.id==='winMine') renderGrid();
+  }
+});
+document.addEventListener('mouseup',()=>{dragging=null;resizing=null;});
+
+// ── RESIZE ──
+let resizing=null,resizeStartX=0,resizeStartY=0,resizeStartW=0,resizeStartH=0;
+function startResize(e,winId){
+  resizing=document.getElementById(winId);
+  resizeStartX=e.clientX;resizeStartY=e.clientY;
+  resizeStartW=resizing.offsetWidth;resizeStartH=resizing.offsetHeight;
+  e.preventDefault();e.stopPropagation();
+}
+
+// ── START MENU ──
+let startOpen=false;
+function toggleStart(){
+  startOpen=!startOpen;
+  document.getElementById('startMenu').classList.toggle('open',startOpen);
+  document.getElementById('startBtn').classList.toggle('pressed',startOpen);
+}
+document.addEventListener('click',e=>{
+  if(startOpen&&!e.target.closest('#startMenu')&&!e.target.closest('#startBtn')){
+    startOpen=false;
+    document.getElementById('startMenu').classList.remove('open');
+    document.getElementById('startBtn').classList.remove('pressed');
+  }
+});
+
+// ── MINESWEEPER ──
+const DIFFS={
+  beg:{rows:9,cols:9,mines:10},
+  int:{rows:16,cols:16,mines:40},
+  exp:{rows:24,cols:30,mines:180}
+};
+let diff='beg',board=[],revealed=[],flagged=[],gameOver=false,gameWon=false,firstClick=true;
+let mRows,mCols,mMines,timerInterval,seconds=0,flagCount=0;
+
+function setDiff(d){
+  diff=d;
+  ['Beg','Int','Exp'].forEach(k=>{
+    document.getElementById('btn'+k).classList.toggle('active',k.toLowerCase()===d);
+  });
+  initGame();
+}
+function fmt3(n){return String(Math.min(Math.max(n,0),999)).padStart(3,'0');}
+
+function initGame(){
+  clearInterval(timerInterval);
+  seconds=0;flagCount=0;gameOver=false;gameWon=false;firstClick=true;
+  const cfg=DIFFS[diff];
+  mRows=cfg.rows;mCols=cfg.cols;mMines=cfg.mines;
+  board=Array(mRows).fill(null).map(()=>Array(mCols).fill(0));
+  revealed=Array(mRows).fill(null).map(()=>Array(mCols).fill(false));
+  flagged=Array(mRows).fill(null).map(()=>Array(mCols).fill(false));
+  document.getElementById('faceBtn').textContent='🙂';
+  document.getElementById('mineCount').textContent=fmt3(mMines);
+  document.getElementById('timerCount').textContent='000';
+  renderGrid();
+}
+
+function renderGrid(){
+  const grid=document.getElementById('mineGrid');
+  const wrap=grid.parentElement;
+  const availW=(wrap.offsetWidth||400)-6;
+  const cellPx=Math.max(20,Math.min(28,Math.floor(availW/mCols)));
+  grid.style.gridTemplateColumns=`repeat(${mCols},${cellPx}px)`;
+  grid.innerHTML='';
+  for(let r=0;r<mRows;r++) for(let c=0;c<mCols;c++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.style.width=cellPx+'px';cell.style.height=cellPx+'px';
+    cell.style.fontSize=Math.max(10,cellPx-8)+'px';
+    cell.dataset.r=r;cell.dataset.c=c;
+    if(revealed[r][c]){
+      cell.classList.add('revealed');
+      if(board[r][c]===-1){cell.textContent='💣';cell.classList.add('mine-hit');}
+      else if(board[r][c]>0){cell.textContent=board[r][c];cell.dataset.n=board[r][c];}
+    } else if(flagged[r][c]){
+      cell.classList.add('flagged');cell.textContent='🚩';
+    }
+    cell.addEventListener('click',onLeft);
+    cell.addEventListener('contextmenu',onRight);
+    grid.appendChild(cell);
+  }
+}
+
+function onLeft(e){
+  if(gameOver||gameWon) return;
+  const r=+e.currentTarget.dataset.r,c=+e.currentTarget.dataset.c;
+  if(flagged[r][c]||revealed[r][c]) return;
+  if(firstClick){
+    firstClick=false;plantMines(r,c);
+    timerInterval=setInterval(()=>{
+      seconds=Math.min(seconds+1,999);
+      document.getElementById('timerCount').textContent=fmt3(seconds);
+    },1000);
+  }
+  revealCell(r,c);checkWin();renderGrid();
+}
+
+function onRight(e){
+  e.preventDefault();
+  if(gameOver||gameWon) return;
+  const r=+e.currentTarget.dataset.r,c=+e.currentTarget.dataset.c;
+  if(revealed[r][c]) return;
+  flagged[r][c]=!flagged[r][c];
+  flagCount+=flagged[r][c]?1:-1;
+  document.getElementById('mineCount').textContent=fmt3(mMines-flagCount);
+  renderGrid();
+}
+
+function plantMines(skipR,skipC){
+  let placed=0;
+  while(placed<mMines){
+    const r=Math.floor(Math.random()*mRows),c=Math.floor(Math.random()*mCols);
+    if(board[r][c]===-1) continue;
+    if(Math.abs(r-skipR)<=1&&Math.abs(c-skipC)<=1) continue;
+    board[r][c]=-1;placed++;
+  }
+  for(let r=0;r<mRows;r++) for(let c=0;c<mCols;c++){
+    if(board[r][c]===-1) continue;
+    let n=0;
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<mRows&&nc>=0&&nc<mCols&&board[nr][nc]===-1) n++;
+    }
+    board[r][c]=n;
+  }
+}
+
+function revealCell(r,c){
+  if(r<0||r>=mRows||c<0||c>=mCols||revealed[r][c]||flagged[r][c]) return;
+  revealed[r][c]=true;
+  if(board[r][c]===-1){
+    gameOver=true;clearInterval(timerInterval);
+    document.getElementById('faceBtn').textContent='😵';
+    for(let rr=0;rr<mRows;rr++) for(let cc=0;cc<mCols;cc++) if(board[rr][cc]===-1) revealed[rr][cc]=true;
+    return;
+  }
+  if(board[r][c]===0) for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) revealCell(r+dr,c+dc);
+}
+
+function checkWin(){
+  let u=0;
+  for(let r=0;r<mRows;r++) for(let c=0;c<mCols;c++) if(!revealed[r][c]) u++;
+  if(u===mMines){
+    gameWon=true;clearInterval(timerInterval);
+    document.getElementById('faceBtn').textContent='😎';
+    document.getElementById('mineCount').textContent='000';
+  }
+}
+</script>
+</body>
+</html>
