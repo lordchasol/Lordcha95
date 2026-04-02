@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LORDCHA.SOL</title>
-  <meta name="description" content="LORDCHA.SOL — Solana Builder & .sol Collector" />
+  <meta name="description" content="LORDCHA.SOL — Solana Builder & Crypto Dev" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='14' height='14' fill='%23f00'/><rect x='18' width='14' height='14' fill='%2300aa00'/><rect y='18' width='14' height='14' fill='%230000ff'/><rect x='18' y='18' width='14' height='14' fill='%23ffff00'/></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -200,18 +200,7 @@
         <span class="win-menu-item">View</span><span class="win-menu-item">Favorites</span><span class="win-menu-item">Help</span>
       </div>
       <div class="ticker-win">
-        <span class="ticker-scroll">
-          SOL <span class="t-up">▲178.32</span><span class="t-sep">|</span>
-          BTC <span class="t-up">▲84,210</span><span class="t-sep">|</span>
-          ETH <span class="t-dn">▼1,893</span><span class="t-sep">|</span>
-          BONK <span class="t-up">▲0.0000218</span><span class="t-sep">|</span>
-          FEAR/GREED <span class="t-up">61 GREED</span><span class="t-sep">|</span>&nbsp;&nbsp;
-          SOL <span class="t-up">▲178.32</span><span class="t-sep">|</span>
-          BTC <span class="t-up">▲84,210</span><span class="t-sep">|</span>
-          ETH <span class="t-dn">▼1,893</span><span class="t-sep">|</span>
-          BONK <span class="t-up">▲0.0000218</span><span class="t-sep">|</span>
-          FEAR/GREED <span class="t-up">61 GREED</span><span class="t-sep">|</span>
-        </span>
+        <span class="ticker-scroll" id="tickerScroll">LOADING MARKET DATA...</span>
       </div>
       <div class="win-body">
         <div class="link-content">
@@ -236,7 +225,7 @@
               <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#24292e"/><path d="M20 9.6C14.26 9.6 9.6 14.26 9.6 20c0 4.6 2.98 8.5 7.12 9.88.52.1.71-.23.71-.5v-1.74c-2.9.63-3.5-1.4-3.5-1.4-.47-1.2-1.15-1.52-1.15-1.52-.94-.64.07-.63.07-.63 1.04.07 1.59 1.07 1.59 1.07.93 1.59 2.43 1.13 3.02.86.09-.67.36-1.13.66-1.39-2.31-.26-4.74-1.16-4.74-5.15 0-1.14.4-2.07 1.07-2.8-.11-.26-.46-1.32.1-2.76 0 0 .87-.28 2.86 1.07a9.93 9.93 0 012.6-.35c.88 0 1.77.12 2.6.35 1.98-1.35 2.85-1.07 2.85-1.07.56 1.44.21 2.5.1 2.76.66.73 1.07 1.66 1.07 2.8 0 4-2.44 4.88-4.76 5.14.37.32.71.96.71 1.93v2.86c0 .28.19.6.72.5C27.42 28.49 30.4 24.6 30.4 20c0-5.74-4.66-10.4-10.4-10.4z" fill="#fff"/></svg></div>
               <span class="icon-label">GitHub</span>
             </a>
-            <a class="icon-item" href="https://sns.id/account/4UPpQcj9Ut3HNh1yR7VEAwY5u8nHirKGUFZciwb4eBAh" target="_blank" rel="noopener">
+            <a class="icon-item" href="https://www.sns.id/account/4UPpQcj9Ut3HNh1yR7VEAwY5u8nHirKGUFZciwb4eBAh" target="_blank" rel="noopener">
               <div class="icon-img"><svg viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" fill="#000"/><path d="M12 20l4-8 2 4 2-6 2 6 2-4 4 8H12z" fill="#9945ff"/><path d="M12 22h16" stroke="#14f195" stroke-width="1.5"/><circle cx="20" cy="14" r="2" fill="#14f195"/></svg></div>
               <span class="icon-label">.sol domains</span>
             </a>
@@ -330,6 +319,52 @@ function tick(){
   if(cs) cs.textContent=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+t;
 }
 tick(); setInterval(tick,10000);
+
+// ── LIVE TICKER ──
+function fmtPrice(n){
+  if(n>=1000) return n.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(n>=1) return n.toLocaleString('en-US',{maximumFractionDigits:2});
+  return n.toLocaleString('en-US',{maximumFractionDigits:8});
+}
+function fmtChange(c){
+  const up=c>=0;
+  const arrow=up?'▲':'▼';
+  const cls=up?'t-up':'t-dn';
+  return `<span class="${cls}">${arrow}${Math.abs(c).toFixed(2)}%</span>`;
+}
+function buildTicker(coins,fg){
+  const sep='<span class="t-sep">|</span>';
+  let items=coins.map(c=>{
+    const up=c.price_change_percentage_24h>=0;
+    const arrow=up?'▲':'▼';
+    const cls=up?'t-up':'t-dn';
+    return `${c.symbol.toUpperCase()} <span class="${cls}">${arrow}$${fmtPrice(c.current_price)}</span> ${fmtChange(c.price_change_percentage_24h)}`;
+  });
+  if(fg){
+    const fgCls=fg.value>=50?'t-up':'t-dn';
+    items.push(`FEAR/GREED <span class="${fgCls}">${fg.value} ${fg.value_classification.toUpperCase()}</span>`);
+  }
+  const joined=items.join(' '+sep+' ');
+  // Duplicate for seamless loop
+  return joined+' '+sep+'&nbsp;&nbsp;'+joined+' '+sep;
+}
+async function fetchTicker(){
+  try{
+    const [priceRes,fgRes]=await Promise.all([
+      fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=solana,bitcoin,ethereum,bonk&order=market_cap_desc&sparkline=false&price_change_percentage=24h'),
+      fetch('https://api.alternative.me/fng/')
+    ]);
+    const coins=await priceRes.json();
+    const fg=(await fgRes.json()).data[0];
+    const order=['bitcoin','solana','ethereum','bonk'];
+    const sorted=order.map(id=>coins.find(c=>c.id===id)).filter(Boolean);
+    document.getElementById('tickerScroll').innerHTML=buildTicker(sorted,fg);
+  }catch(e){
+    console.warn('Ticker fetch failed',e);
+  }
+}
+fetchTicker();
+setInterval(fetchTicker, 60000);
 
 // ── BOOT ──
 const bootMsgs=['Initializing system...','Loading LORDCHA.SYS...','Mounting Solana volume...','Loading MINESWEEPER.EXE...','Connecting to mainnet...','Starting Explorer.exe...','Welcome.'];
