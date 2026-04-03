@@ -314,7 +314,7 @@
     </div>
 
     <!-- SCORE MODAL -->
-    <div id="scoreModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div id="scoreModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;">
       <div style="background:#c0c0c0;border-top:3px solid #fff;border-left:3px solid #fff;border-right:3px solid #808080;border-bottom:3px solid #808080;box-shadow:4px 4px 0 #000;width:min(360px,90vw);">
         <div style="background:linear-gradient(to right,#000080,#1084d0);padding:4px 8px;display:flex;align-items:center;justify-content:space-between;">
           <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;">🏆</span><span style="color:#fff;font-size:12px;font-weight:bold;">New High Score!</span></div>
@@ -830,10 +830,13 @@ function checkWin(){
     gameWon=true;clearInterval(timerInterval);
     document.getElementById('faceBtn').textContent='😎';
     document.getElementById('mineCount').textContent='000';
-    const score=calcScore(mMines,seconds||1);
+    const finalSecs=Math.max(seconds,1);
+    const score=calcScore(mMines,finalSecs);
+    console.log('[Minesweeper] Win! diff='+diff+' secs='+finalSecs+' score='+score);
     isTop10(diff,score).then(top=>{
-      if(top) setTimeout(()=>showModal(diff,score,seconds),400);
-    });
+      console.log('[Minesweeper] isTop10='+top);
+      if(top) setTimeout(()=>showModal(diff,score,finalSecs),500);
+    }).catch(e=>console.error('[Minesweeper] isTop10 error',e));
   }
 }
 </script>
