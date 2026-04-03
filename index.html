@@ -640,6 +640,17 @@ function setLbDiff(d){
   renderLb();
 }
 
+async function resolveDomain(domain){
+  if(!domain) return null;
+  try{
+    const clean=domain.replace(/\.sol$/,'');
+    const res=await fetch(`https://sns-sdk-proxy.bonfida.workers.dev/resolve/${clean}`);
+    if(!res.ok) return null;
+    const data=await res.json();
+    return data.result||null;
+  }catch(e){return null;}
+}
+
 async function renderLb(){
   const body=document.getElementById('lbBody');
   if(!body) return;
@@ -650,14 +661,21 @@ async function renderLb(){
     body.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:#808080;font-family:Tahoma,Arial,sans-serif;font-size:12px;">No scores yet. Play Minesweeper!</td></tr>';
     return;
   }
+  // Resolve all domains in parallel
+  const resolved=await Promise.all(list.map(e=>resolveDomain(e.domain)));
   body.innerHTML=list.map((e,i)=>{
     const bg=i%2===0?'#fff':'#f0f0f0';
     const rank=medals[i]||`#${i+1}`;
-    const domain=e.domain?`<a href="https://www.sns.id/account/${e.domain}" target="_blank" rel="noopener" style="color:#000080;text-decoration:none;">${e.domain}</a>`:'—';
+    let domainHtml='—';
+    if(e.domain){
+      const wallet=resolved[i];
+      const href=wallet?`https://www.sns.id/account/${wallet}`:`https://www.sns.id/account/${e.domain}`;
+      domainHtml=`<a href="${href}" target="_blank" rel="noopener" style="color:#000080;text-decoration:none;">${e.domain}</a>`;
+    }
     return `<tr style="background:${bg};">
       <td style="padding:5px 8px;font-size:14px;">${rank}</td>
       <td style="padding:5px 8px;font-weight:bold;font-family:Tahoma,Arial,sans-serif;">${e.name}</td>
-      <td style="padding:5px 8px;font-family:Tahoma,Arial,sans-serif;">${domain}</td>
+      <td style="padding:5px 8px;font-family:Tahoma,Arial,sans-serif;">${domainHtml}</td>
       <td style="padding:5px 8px;text-align:right;font-family:'VT323',monospace;font-size:16px;color:#000080;">${e.score}</td>
       <td style="padding:5px 8px;text-align:right;color:#808080;font-family:Tahoma,Arial,sans-serif;">${e.secs}s</td>
     </tr>`;
