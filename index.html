@@ -183,6 +183,10 @@
         <div class="di-img">💣</div>
         <div class="di-label">Minesweeper</div>
       </div>
+      <div class="desk-icon" ondblclick="openWin('lb')">
+        <div class="di-img">🏆</div>
+        <div class="di-label">Leaderboard</div>
+      </div>
     </div>
 
     <!-- LINKS WINDOW -->
@@ -272,6 +276,68 @@
       </div>
       <div class="win-resize" onmousedown="startResize(event,'winMine')"></div>
     </div>
+
+    <!-- LEADERBOARD WINDOW -->
+    <div class="win" id="winLb" style="top:40px;left:140px;width:min(480px,calc(100% - 90px));">
+      <div class="win-titlebar" onmousedown="startDrag(event,'winLb')">
+        <div class="win-titlebar-left"><div class="win-icon">🏆</div><span class="win-title">Minesweeper — Leaderboard</span></div>
+        <div class="win-btns">
+          <div class="wbtn" onclick="minimizeWin('lb')">_</div>
+          <div class="wbtn" onclick="maximizeWin('winLb')">□</div>
+          <div class="wbtn" onclick="closeWin('lb')" style="font-size:11px;">✕</div>
+        </div>
+      </div>
+      <div class="win-menubar"><span class="win-menu-item">View</span><span class="win-menu-item">Help</span></div>
+      <div class="win-body" style="background:#fff;">
+        <div style="padding:10px 12px;">
+          <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+            <button class="diff-btn active" id="lbBtnBeg" onclick="setLbDiff('beg')">Beginner</button>
+            <button class="diff-btn" id="lbBtnInt" onclick="setLbDiff('int')">Intermediate</button>
+            <button class="diff-btn" id="lbBtnExp" onclick="setLbDiff('exp')">Expert</button>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:Tahoma,Arial,sans-serif;">
+            <thead>
+              <tr style="background:#000080;color:#fff;">
+                <th style="padding:5px 8px;text-align:left;width:28px;">#</th>
+                <th style="padding:5px 8px;text-align:left;">Name</th>
+                <th style="padding:5px 8px;text-align:left;">.sol domain</th>
+                <th style="padding:5px 8px;text-align:right;">Score</th>
+                <th style="padding:5px 8px;text-align:right;">Time</th>
+              </tr>
+            </thead>
+            <tbody id="lbBody"></tbody>
+          </table>
+          <div style="margin-top:10px;font-size:10px;color:#808080;font-family:Tahoma,Arial,sans-serif;">Score = (mines × 1000) ÷ seconds. Higher is better.</div>
+        </div>
+      </div>
+      <div class="win-resize" onmousedown="startResize(event,'winLb')"></div>
+    </div>
+
+    <!-- SCORE MODAL -->
+    <div id="scoreModal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+      <div style="background:#c0c0c0;border-top:3px solid #fff;border-left:3px solid #fff;border-right:3px solid #808080;border-bottom:3px solid #808080;box-shadow:4px 4px 0 #000;width:min(360px,90vw);">
+        <div style="background:linear-gradient(to right,#000080,#1084d0);padding:4px 8px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;">🏆</span><span style="color:#fff;font-size:12px;font-weight:bold;">New High Score!</span></div>
+          <div class="wbtn" onclick="closeModal()">✕</div>
+        </div>
+        <div style="padding:16px;font-family:Tahoma,Arial,sans-serif;">
+          <p style="font-size:12px;margin-bottom:12px;" id="modalMsg"></p>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px;display:block;margin-bottom:4px;">Your name</label>
+            <input id="modalName" type="text" maxlength="20" placeholder="Satoshi" style="width:100%;padding:3px 6px;font-size:12px;border-top:2px solid #808080;border-left:2px solid #808080;border-right:2px solid #fff;border-bottom:2px solid #fff;background:#fff;font-family:Tahoma,Arial,sans-serif;" />
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:11px;display:block;margin-bottom:4px;">.sol domain <span style="color:#808080;">(optional)</span></label>
+            <input id="modalDomain" type="text" maxlength="30" placeholder="satoshi.sol" style="width:100%;padding:3px 6px;font-size:12px;border-top:2px solid #808080;border-left:2px solid #808080;border-right:2px solid #fff;border-bottom:2px solid #fff;background:#fff;font-family:Tahoma,Arial,sans-serif;" />
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="closeModal()" style="padding:4px 14px;font-size:11px;font-family:Tahoma,Arial,sans-serif;background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #808080;border-bottom:2px solid #808080;cursor:pointer;">Cancel</button>
+            <button onclick="submitScore()" style="padding:4px 14px;font-size:11px;font-family:Tahoma,Arial,sans-serif;font-weight:bold;background:#c0c0c0;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #808080;border-bottom:2px solid #808080;cursor:pointer;">Submit ✓</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- START MENU -->
@@ -285,6 +351,10 @@
       <div class="sm-item" onclick="openWin('mine');toggleStart();">
         <span class="sm-ico">💣</span>
         <div class="sm-item-text"><div class="sm-item-title">Minesweeper</div><div class="sm-item-sub">Good luck</div></div>
+      </div>
+      <div class="sm-item" onclick="openWin('lb');toggleStart();">
+        <span class="sm-ico">🏆</span>
+        <div class="sm-item-text"><div class="sm-item-title">Leaderboard</div><div class="sm-item-sub">Top 10 scores</div></div>
       </div>
       <div class="sm-separator"></div>
       <div class="sm-item" onclick="toggleStart()">
@@ -303,6 +373,7 @@
     <div class="tb-wins">
       <div class="tb-win" id="tbLinks" onclick="tbClick('links')">◆ LORDCHA.SOL</div>
       <div class="tb-win" id="tbMine" onclick="tbClick('mine')">💣 Minesweeper</div>
+      <div class="tb-win" id="tbLb" onclick="tbClick('lb')">🏆 Leaderboard</div>
     </div>
     <div class="taskbar-clock" id="taskbarClock">00:00</div>
   </div>
@@ -393,7 +464,7 @@ function bootStep(){
 setTimeout(bootStep,900);
 
 // ── WINDOW MANAGEMENT ──
-const winMap={links:{el:'winLinks',tb:'tbLinks'},mine:{el:'winMine',tb:'tbMine'}};
+const winMap={links:{el:'winLinks',tb:'tbLinks'},mine:{el:'winMine',tb:'tbMine'},lb:{el:'winLb',tb:'tbLb'}};
 let zTop=10,focused=null;
 const maxState={};
 
@@ -422,6 +493,7 @@ function openWin(key){
   document.getElementById(w.tb).classList.add('show');
   focusWin(key);
   if(key==='mine') initGame();
+  if(key==='lb') renderLb();
 }
 
 function closeWin(key){
@@ -530,6 +602,94 @@ document.addEventListener('click',e=>{
     document.getElementById('startBtn').classList.remove('pressed');
   }
 });
+
+// ── LEADERBOARD ──
+const SB_URL='https://bghphrjoumlaomrwmveb.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnaHBocmpvdW1sYW9tcndtdmViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2OTI2OTAsImV4cCI6MjA5MDI2ODY5MH0.nlQw9aQc6ILZk7fGY-YIttvXrGlHIRFP5_1ACL2dWG0';
+const SB_HEADERS={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+let lbDiff='beg';
+let pendingScore=null;
+
+function calcScore(mines,secs){return Math.round((mines*1000)/secs);}
+
+async function fetchTop10(diff){
+  const res=await fetch(`${SB_URL}/rest/v1/leaderboard?diff=eq.${diff}&order=score.desc&limit=10`,{headers:SB_HEADERS});
+  if(!res.ok) return [];
+  return res.json();
+}
+
+async function isTop10(diff,score){
+  const list=await fetchTop10(diff);
+  return list.length<10||score>(list[list.length-1]?.score||0);
+}
+
+async function insertScore(name,domain,score,secs,diff){
+  await fetch(`${SB_URL}/rest/v1/leaderboard`,{
+    method:'POST',
+    headers:{...SB_HEADERS,'Prefer':'return=minimal'},
+    body:JSON.stringify({name,domain:domain||null,score,secs,diff})
+  });
+}
+
+function setLbDiff(d){
+  lbDiff=d;
+  ['Beg','Int','Exp'].forEach(k=>{
+    document.getElementById('lbBtn'+k).classList.toggle('active',k.toLowerCase()===d);
+  });
+  renderLb();
+}
+
+async function renderLb(){
+  const body=document.getElementById('lbBody');
+  if(!body) return;
+  body.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:#808080;font-family:Tahoma,Arial,sans-serif;font-size:12px;">Loading...</td></tr>';
+  const list=await fetchTop10(lbDiff);
+  const medals=['🥇','🥈','🥉'];
+  if(list.length===0){
+    body.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:#808080;font-family:Tahoma,Arial,sans-serif;font-size:12px;">No scores yet. Play Minesweeper!</td></tr>';
+    return;
+  }
+  body.innerHTML=list.map((e,i)=>{
+    const bg=i%2===0?'#fff':'#f0f0f0';
+    const rank=medals[i]||`#${i+1}`;
+    const domain=e.domain?`<a href="https://www.sns.id/account/${e.domain}" target="_blank" rel="noopener" style="color:#000080;text-decoration:none;">${e.domain}</a>`:'—';
+    return `<tr style="background:${bg};">
+      <td style="padding:5px 8px;font-size:14px;">${rank}</td>
+      <td style="padding:5px 8px;font-weight:bold;font-family:Tahoma,Arial,sans-serif;">${e.name}</td>
+      <td style="padding:5px 8px;font-family:Tahoma,Arial,sans-serif;">${domain}</td>
+      <td style="padding:5px 8px;text-align:right;font-family:'VT323',monospace;font-size:16px;color:#000080;">${e.score}</td>
+      <td style="padding:5px 8px;text-align:right;color:#808080;font-family:Tahoma,Arial,sans-serif;">${e.secs}s</td>
+    </tr>`;
+  }).join('');
+}
+
+async function showModal(diff,score,secs){
+  pendingScore={diff,score,secs};
+  const list=await fetchTop10(diff);
+  const rank=list.filter(e=>e.score>score).length+1;
+  document.getElementById('modalMsg').textContent=`You finished in ${secs}s — Score: ${score}. You're ranked #${rank} on ${diff.toUpperCase()}! Enter your info:`;
+  document.getElementById('modalName').value='';
+  document.getElementById('modalDomain').value='';
+  const m=document.getElementById('scoreModal');
+  m.style.display='flex';
+  setTimeout(()=>document.getElementById('modalName').focus(),50);
+}
+
+function closeModal(){
+  document.getElementById('scoreModal').style.display='none';
+  pendingScore=null;
+}
+
+async function submitScore(){
+  if(!pendingScore) return;
+  const name=document.getElementById('modalName').value.trim()||'Anonymous';
+  const domain=document.getElementById('modalDomain').value.trim().replace(/^@/,'');
+  await insertScore(name,domain,pendingScore.score,pendingScore.secs,pendingScore.diff);
+  closeModal();
+  setLbDiff(pendingScore.diff);
+  openWin('lb');
+}
 
 // ── MINESWEEPER ──
 const DIFFS={
@@ -652,6 +812,10 @@ function checkWin(){
     gameWon=true;clearInterval(timerInterval);
     document.getElementById('faceBtn').textContent='😎';
     document.getElementById('mineCount').textContent='000';
+    const score=calcScore(mMines,seconds||1);
+    isTop10(diff,score).then(top=>{
+      if(top) setTimeout(()=>showModal(diff,score,seconds),400);
+    });
   }
 }
 </script>
