@@ -702,7 +702,7 @@ function closeModal(){
 async function submitScore(){
   if(!pendingScore) return;
   const name=document.getElementById('modalName').value.trim()||'Anonymous';
-  const domain=document.getElementById('modalDomain').value.trim().replace(/^@/,'');
+  const domain=document.getElementById('modalDomain').value.trim().replace(/^@/,'').toLowerCase();
   await insertScore(name,domain,pendingScore.score,pendingScore.secs,pendingScore.diff);
   closeModal();
   setLbDiff(pendingScore.diff);
